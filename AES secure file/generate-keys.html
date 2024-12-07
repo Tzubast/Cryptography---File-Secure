@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Generate RSA Keys</title>
+        <link rel="stylesheet" href="styles/main.css" />
+    </head>
+
+    <body>
+        <nav>
+            <a class="selected" href="generate-keys.html">Generate Keys</a>
+            <a href="encrypt-text.html">Encrypt Text</a>
+            <a href="decrypt-text.html">Decrypt Text</a>
+            <a href="encrypt-file.html">Encrypt File</a>
+            <a href="decrypt-file.html">Decrypt File</a>
+        </nav>
+
+        <div class="page">
+            <h1>Generate RSA Keys</h1>
+            <button id="button">Generate Keys</button>
+            <div id="message"></div>
+            
+            <div id="result">
+                <div class="field">
+                    <label for="public-key">RSA Public Key</label>
+                    <a id="public-key-download" class="download" download="id_rsa.pub">id_rsa.pub</a>
+                    <textarea id="public-key-text" rows="10" readonly></textarea>
+                </div>
+
+                <div class="field">
+                    <label for="private-key">RSA Private Key</label>
+                    <a id="private-key-download" class="download" download="id_rsa">id_rsa</a>
+                    <textarea id="private-key-text" rows="10" readonly></textarea>
+                </div>
+            </div>
+        </div>
+    </body>
+
+    <script src="scripts/encoding-helper.js"></script>
+    <script src="scripts/encryption-helper.js"></script>
+    <script>
+        (function () {
+            var publicKeyText = document.getElementById("public-key-text");
+            var publicKeyDownload = document.getElementById("public-key-download");
+            var privateKeyText = document.getElementById("private-key-text");
+            var privateKeyDownload = document.getElementById("private-key-download");
+            var button = document.getElementById("button");
+            var message = document.getElementById("message");
+            var result = document.getElementById("result");
+
+            var success = function (keys) {
+                publicKeyText.value = arrayBufferToPem(keys.publicKeyBuffer, "RSA PUBLIC KEY");
+                publicKeyDownload.href = window.URL.createObjectURL(
+                    new Blob([publicKeyText.value], { type: "application/octet-stream" }));
+                privateKeyText.value = arrayBufferToPem(keys.privateKeyBuffer, "RSA PRIVATE KEY");
+                privateKeyDownload.href = window.URL.createObjectURL(
+                    new Blob([privateKeyText.value], { type: "application/octet-stream" }));
+                result.style.display = "block";
+                message.innerText = null;
+                button.disabled = false;
+            };
+
+            var error = function (error) {
+                message.innerText = error;
+                button.disabled = false;
+            };
+
+            var process = function () {
+                message.innerText = "Processing...";
+                button.disabled = true;
+                generateRsaKeys().then(success, error);
+            };
+
+            var warn = function () {
+                if (privateKey.value === "") return;
+                return "Are you sure? Your keys will be lost unless you've saved them.";
+            };
+
+            button.addEventListener("click", process);
+            window.onbeforeunload = warn;
+        })();
+    </script>
+</html>
